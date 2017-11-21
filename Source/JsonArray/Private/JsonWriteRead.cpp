@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "JsonWriteRead.h"
-#pragma region 读取json
+#pragma region //写入json数据储存到本地文件中
 
 
 
@@ -19,22 +19,21 @@ void UJsonWriteRead::WriteJson(FString _path, TArray<FJsonArray> jsonArry, bool 
 	}
 	jsonWriter->WriteArrayEnd();
 	jsonWriter->Close();
-	FString path = FPaths::GameDir() / *_path;//打开游戏目录
-    fail=FFileHelper::SaveStringToFile(jsonStr,*path);//存储json文件
+	_path = FPaths::GameDir() / *_path;//打开游戏目录
+	fail = FFileHelper::SaveStringToFile(jsonStr, *_path);//存储json文件
 
 }
 
 #pragma endregion
-
-TArray<FJsonArray> UJsonWriteRead::ReadJson(FString _path, bool & flag)
-{           
-	TArray<FJsonArray> JsonArry;
+void UJsonWriteRead::ReadJson(FString _path, bool & flag, TArray<FJsonArray> &JsonArry)
+{
 	FJsonArray JsonObjet;
 	FString JsonValue;
-	flag = FFileHelper::LoadFileToString(JsonValue,*_path);
+	_path = FPaths::GameDir() / *_path;//打开游戏目录
+	flag = FFileHelper::LoadFileToString(JsonValue, *_path);
 	TArray<TSharedPtr<FJsonValue>> JsonParsed;
 	TSharedRef<TJsonReader<TCHAR>> JsonReader = TJsonReaderFactory<TCHAR>::Create(JsonValue);
-	if (FJsonSerializer::Deserialize(JsonReader,JsonParsed))
+	if (FJsonSerializer::Deserialize(JsonReader, JsonParsed))
 	{
 		if (flag)
 		{
@@ -47,13 +46,25 @@ TArray<FJsonArray> UJsonWriteRead::ReadJson(FString _path, bool & flag)
 			}
 		}
 	}
-	return JsonArry;
-}
 
+}
+//在游戏目录下创建文件
 void UJsonWriteRead::CreateFolder(FString _path)
 {
-	//FPlatformFileManager::Get().GetPlatformFile().crea
+	_path = FPaths::GameDir() / *_path;
+	_path = FPaths::ConvertRelativePathToFull(*_path);
+
+	FPlatformFileManager::Get().GetPlatformFile().CreateDirectoryTree(*_path);
+
 }
+//删除该文件以及子文件
+void UJsonWriteRead::DeleteFolder(FString _path)
+{
+	_path = FPaths::GameDir() / *_path;
+	_path = FPaths::ConvertRelativePathToFull(*_path);
+	FPlatformFileManager::Get().Get().GetPlatformFile().DeleteDirectoryRecursively(*_path);
+}
+
 ////获取项目当前目录
 //FString UFileDictOperationCollection::GetGameDir()
 //{
